@@ -26,26 +26,36 @@ export class QBittorrentClient {
 		this.api = got.extend({
 			prefixUrl: `${this.config.url}/api/v2`,
 			hooks: {
-				beforeRequest: [
-					async () => {
-						if (!this.authenticated) await this.authenticate();
-					},
-				],
+				// beforeRequest: [
+				// 	async (req) => {
+				// 		console.log(req.url)
+				// 		console.log(req.headers)
+				// 	},
+				// ],
+				// afterResponse: [
+				// 	async (response) => {
+				// 		console.log(response.statusCode)
+				// 		return response;
+				// 	}
+				// ]
 			},
 		});
 	}
 
-	private async authenticate(): Promise<void> {
+	async authenticate(): Promise<void> {
 		if (this.authenticated) return;
-
-		await this.api.post("auth/login", {
-			body: new URLSearchParams({
-				username: this.config.username,
-				password: this.config.password,
-			}),
-		});
-
-		this.authenticated = true;
+		try {
+			this.authenticated = true;
+			await this.api.post("auth/login", {
+				form: {
+					username: this.config.username,
+					password: this.config.password,
+				},
+			});
+		} catch (error) {
+			this.authenticated = false;
+			throw error;
+		}
 	}
 
 	async getTorrentFiles(hash: string): Promise<TorrentFile[]> {
@@ -67,10 +77,10 @@ export class QBittorrentClient {
 	async resumeTorrent(hash: string): Promise<void> {
 		await this.authenticate();
 
-		await this.api.post("torrents/resume", {
-			body: new URLSearchParams({
+		await this.api.post("torrents/start", {
+			form: {
 				hashes: hash,
-			}),
+			},
 		});
 	}
 

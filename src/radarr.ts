@@ -9,6 +9,9 @@ export const RadarrWebhookSchema = z.object({
 		imdbId: z.string(),
 		tmdbId: z.number(),
 	}),
+	release: z.object({
+		releaseTitle: z.string(),
+	}),
 	downloadId: z.string(),
 	downloadClient: z.literal("qBittorrent"),
 });
